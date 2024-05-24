@@ -1,89 +1,63 @@
 console.log('client.js is sourced!');
 
-// Get references to DOM elements
-const calculatorForm = document.querySelector('[data-testid="calculator"]');
-const numOneInput = document.querySelector('[data-testid="numOne"]');
-const numTwoInput = document.querySelector('[data-testid="numTwo"]');
-const operatorButtons = document.querySelectorAll('[data-testid="calculator"] button:not([type="submit"])');
-const equalsButton = document.querySelector('[data-testid="calculator"] button[type="submit"]');
-const clearButton = document.querySelector('[data-testid="calculator"] button[type="button"]');
-const recentResultSection = document.querySelector('[data-testid="recentResult"]');
-const resultHistorySection = document.querySelector('[data-testid="resultHistory"]');
-
-let currentOperator = '+';
-
-// Fetch calculation history on page load
 document.addEventListener('DOMContentLoaded', () => {
-  fetchCalculations();
-});
+  const calculatorForm = document.querySelector('[data-testid="calculator"]');
+  const numOneInput = document.querySelector('[data-testid="numOne"]');
+  const numTwoInput = document.querySelector('[data-testid="numTwo"]');
+  const recentResultSection = document.querySelector('[data-testid="recentResult"]');
+  const resultHistorySection = document.querySelector('[data-testid="resultHistory"]');
 
-// Event listeners for operator buttons
-operatorButtons.forEach(button => {
-  button.addEventListener('click', (event) => {
-    event.preventDefault();
-    currentOperator = event.target.textContent;
-  });
-});
-
-// Event listener for form submission
-calculatorForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const numOne = parseFloat(numOneInput.value);
-  const numTwo = parseFloat(numTwoInput.value);
-
-  if (isNaN(numOne) || isNaN(numTwo)) {
-    alert('Please enter valid numbers');
-    return;
-  }
-
-  const calculation = {
-    numOne,
-    numTwo,
-    operator: currentOperator
+  const loadCalculations = () => {
+    axios.get('/calculations')
+      .then(response => {
+        const calculations = response.data;
+        resultHistorySection.innerHTML = calculations.map(calc => {
+          return `<li>${calc.numOne} ${calc.operator} ${calc.numTwo} = ${calc.result}</li>`;
+        }).join('');
+        if (calculations.length > 0) {
+          const lastCalculation = calculations[calculations.length - 1];
+          recentResultSection.innerHTML = `<h2>${lastCalculation.result}</h2>`;
+        }
+      })
+      .catch(error => console.error('Error loading calculations:', error));
   };
 
-  // Send calculation to server
-  postCalculation(calculation);
-});
+  const handleCalculation = (numOne, numTwo, operator) => {
+    axios.post('/calculations', { numOne, numTwo, operator })
+      .then(() => {
+        numOneInput.value = '';
+        numTwoInput.value = '';
+        loadCalculations();
+      })
+      .catch(error => console.error('Error making calculation:', error));
+  };
 
-// Event listener for clear button
-clearButton.addEventListener('click', (event) => {
-  event.preventDefault();
-  numOneInput.value = '';
-  numTwoInput.value = '';
-  currentOperator = '+';
-});
+  calculatorForm.addEventListener('click', (event) => {
+    if (event.target.tagName === 'BUTTON') {
+      event.preventDefault();
+      const operator = event.target.textContent;
 
-// Function to fetch calculations from server
-function fetchCalculations() {
-  axios.get('/calculations')
-    .then(response => {
-      const calculations = response.data;
-      updateHistory(calculations);
-      updateRecentResult(calculations);
-    })
-    .catch(error => {
-      console.error('Error fetching calculations:', error);
-    });
-}
+      if (operator === 'C') {
+        numOneInput.value = '';
+        numTwoInput.value = '';
+        return;
+      }
 
-// Function to send new calculation to server
-function postCalculation(calculation) {
-  axios.post('/calculations', calculation)
-    .then(response => {
-      fetchCalculations();
-    })
-    .catch(error => {
-      console.error('Error posting calculation:', error);
-    });
-}
-
-// Function to update calculation history in DOM
-function updateHistory(calculations) {
-  resultHistorySection.innerHTML = '';
-  calculations.forEach(calculation => {
-    const listItem = document.createElement('li');
-    listItem.textContent = `${calculation.numOne} ${calculation.operator} ${calculation.numTwo} = ${calculation.result}`;
-    resultHistorySection.appendChild(listItem);
+      if (operator === '=') {
+        const numOne = parseFloat(numOneInput.value);
+        const numTwo = parseFloat(numTwoInput.value);
+        if (isNaN(numOne) || isNaN(numTwo)) {
+          return;
+        }
+        const selectedOperator = calculatorForm.querySelector('button[selected]').textContent;
+        handleCalculation(numOne, numTwo, selectedOperator);
+      } else {
+        const buttons = calculatorForm.querySelectorAll('button');
+        buttons.forEach(button => button.removeAttribute('selected'));
+        event.target.setAttribute('selected', 'selected');
+      }
+    }
   });
-}
+
+  loadCalculations();
+});

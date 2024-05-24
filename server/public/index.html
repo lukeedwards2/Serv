@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Server-Side Calculator</title>    
+    <title>Server-Side Calculator</title>
     <script defer src="scripts/axios.js"></script>
     <script defer src="scripts/client.js" charset="utf-8"></script>
   </head>
@@ -10,22 +10,22 @@
     <h1>Server-Side Calculator</h1>
 
     <form data-testid="calculator">
-      <input data-testid="numOne" placeholder="First Number">
-      <button>+</button>
-      <button>-</button>
-      <button>*</button>
-      <button>/</button>
-      <input data-testid="numTwo" placeholder="Second Number">
-      <button>=</button>
-      <button>C</button>
+      <input data-testid="numOne" type="number" placeholder="First Number">
+      <button type="button">+</button>
+      <button type="button">-</button>
+      <button type="button">*</button>
+      <button type="button">/</button>
+      <input data-testid="numTwo" type="number" placeholder="Second Number">
+      <button type="button">=</button>
+      <button type="button">C</button>
     </form>
 
     <section data-testid="recentResult">
-      <!-- The most recent calculation result goes here. -->
+      <!-- Recent Calculations -->
     </section>
 
     <section data-testid="resultHistory">
-      <!-- The list of calculation results goes here. -->
+      <!-- Calculation Results -->
     </section>
   </body>
 </html>

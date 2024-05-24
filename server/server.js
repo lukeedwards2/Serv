@@ -1,25 +1,21 @@
 const express = require('express');
+const path = require('path');
 const app = express();
-let PORT = process.env.PORT || 5000;
+let PORT = process.env.PORT || 5001;
 
 app.use(express.json());
-app.use(express.static('server/public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Global variable that will contain all of the
-// calculation objects:
-let calculations = []
+let calculations = [];
 
-//Here's a wonderful place to make some routes:
-
-// GET /calculations
 app.get('/calculations', (req, res) => {
   res.json(calculations);
 });
-// POST /calculations
+
 app.post('/calculations', (req, res) => {
   const { numOne, numTwo, operator } = req.body;
-
   let result;
+
   switch (operator) {
     case '+':
       result = numOne + numTwo;
@@ -36,31 +32,18 @@ app.post('/calculations', (req, res) => {
     default:
       return res.status(400).send('Invalid operator');
   }
+
   const calculation = { numOne, numTwo, operator, result };
   calculations.push(calculation);
 
   res.status(201).json(calculation);
 });
-// PLEASE DO NOT MODIFY ANY CODE BELOW THESE BEARS:
-// 🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸
 
-// Makes it so you don't have to kill the server
-// on 5000 in order to run the tests:
-if (process.env.NODE_ENV === 'test') {
-  PORT = 5001;
-}
-
-// This starts the server...but also stores it in a variable.
-// This is weird. We have to do it for testing reasons. There
-// is absolutely no need for you to reason about this.
+// Start the server
 const server = app.listen(PORT, () => {
   console.log('server running on: ', PORT);
 });
 
-// server.setTimeout(500)
-
-// This is more weird "for testing reasons" code. There is
-// absolutely no need for you to reason about this.
 app.closeServer = () => {
   server.close();
 }
