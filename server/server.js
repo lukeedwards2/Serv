@@ -9,14 +9,38 @@ app.use(express.static('server/public'));
 // calculation objects:
 let calculations = []
 
-
-// Here's a wonderful place to make some routes:
+//Here's a wonderful place to make some routes:
 
 // GET /calculations
-
+app.get('/calculations', (req, res) => {
+  res.json(calculations);
+});
 // POST /calculations
+app.post('/calculations', (req, res) => {
+  const { numOne, numTwo, operator } = req.body;
 
+  let result;
+  switch (operator) {
+    case '+':
+      result = numOne + numTwo;
+      break;
+    case '-':
+      result = numOne - numTwo;
+      break;
+    case '*':
+      result = numOne * numTwo;
+      break;
+    case '/':
+      result = numTwo !== 0 ? numOne / numTwo : 'Error';
+      break;
+    default:
+      return res.status(400).send('Invalid operator');
+  }
+  const calculation = { numOne, numTwo, operator, result };
+  calculations.push(calculation);
 
+  res.status(201).json(calculation);
+});
 // PLEASE DO NOT MODIFY ANY CODE BELOW THESE BEARS:
 // 🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸  🐻  🐻‍❄️  🧸
 
